@@ -1,0 +1,21 @@
+{
+  "appId": "com.cloudinspiration.app",
+  "appName": "Cloud Inspiration",
+  "webDir": "templates",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Camera": {
+      "android": {
+        "permissions": [
+          "android.permission.CAMERA"
+        ],
+        "aspectRatio": "4:3",
+        "quality": 90,
+        "allowEditing": true,
+        "resultType": "uri"
+      }
+    }
+  }
+}

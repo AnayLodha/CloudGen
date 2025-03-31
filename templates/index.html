@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cloud Inspiration - Capture and analyze clouds with AI">
+    <title>Cloud Inspiration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="msapplication-TileColor" content="#4285f4">
+    <meta name="msapplication-navbutton-color" content="#4285f4">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+</head>
+<body>
+    <div class="container">
+        <h1 class="glow-text">Cloud Inspiration</h1>
+        <div id="installPrompt" class="install-prompt hidden">
+            📱 Install this app on your device!
+        </div>
+        <video id="video" autoplay muted aria-label="Camera feed"></video>
+        <img id="preview" alt="Cloud detection preview">
+        <div class="button-container">
+            <button class="capture-btn" id="startBtn">Start Camera</button>
+            <button class="capture-btn" id="captureBtn">Take Photo</button>
+            <button class="capture-btn install-btn" id="installBtn">📱 Install App</button>
+        </div>
+        <div id="affirmation" aria-live="polite"></div>
+    </div>
+
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker not registered', err));
+        }
+
+        // Install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'inline-block';
+        });
+
+        document.getElementById('installBtn').addEventListener('click', (e) => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        });
+
+        // Camera handling
+        let video = document.getElementById('video');
+        let preview = document.getElementById('preview');
+        let startBtn = document.getElementById('startBtn');
+        let captureBtn = document.getElementById('captureBtn');
+        let affirmationDiv = document.getElementById('affirmation');
+
+        startBtn.onclick = async () => {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',  // Use back camera
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                video.style.display = 'block';
+                startBtn.style.display = 'none';
+                captureBtn.style.display = 'inline-block';
+                video.play();
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Error accessing camera. Please make sure you have granted camera permissions.');
+            }
+        };
+
+        captureBtn.onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            // Convert to base64
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // Show loading state
+            captureBtn.disabled = true;
+            captureBtn.textContent = 'Processing...';
+            
+            // Send to server
+            fetch('/process_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: imageData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display processed image
+                preview.src = 'data:image/jpeg;base64,' + data.processed_image;
+                preview.style.display = 'block';
+                video.style.display = 'none';
+                
+                // Reset button
+                captureBtn.disabled = false;
+                captureBtn.textContent = 'Take Photo';
+                
+                // Animate affirmation
+                affirmationDiv.textContent = data.affirmation;
+                affirmationDiv.classList.remove('show');
+                void affirmationDiv.offsetWidth;
+                affirmationDiv.classList.add('show');
+                
+                // Make image clickable for affirmation animation
+                preview.onclick = () => {
+                    affirmationDiv.style.animation = 'none';
+                    void affirmationDiv.offsetWidth;
+                    affirmationDiv.style.animation = 'fadeInUp 0.5s ease forwards';
+                };
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error processing image');
+                captureBtn.disabled = false;
+                captureBtn.textContent = 'Take Photo';
+            });
+        };
+
+        async function processImage(imageData) {
+            try {
+                const formData = new FormData();
+                formData.append('image', imageData);
+                
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to process image');
+                }
+                
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('Error processing image:', error);
+                throw error;
+            }
+        }
+
+        async function handleImageCapture(imageData) {
+            try {
+                const result = await processImage(imageData);
+                if (result.image) {
+                    document.getElementById('result').src = 'data:image/jpeg;base64,' + result.image;
+                    document.getElementById('affirmation').textContent = result.affirmation;
+                    document.getElementById('result-container').style.display = 'block';
+                }
+            } catch (error) {
+                alert('Error processing image: ' + error.message);
+            }
+        }
+
+        // Update the camera capture handler
+        async function captureImage() {
+            try {
+                const image = await Camera.getPhoto({
+                    quality: 90,
+                    allowEditing: true,
+                    resultType: CameraResultType.Uri
+                });
+                
+                // Convert URI to Blob
+                const response = await fetch(image.webPath);
+                const blob = await response.blob();
+                
+                await handleImageCapture(blob);
+            } catch (error) {
+                console.error('Error capturing image:', error);
+                alert('Error capturing image: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html> 

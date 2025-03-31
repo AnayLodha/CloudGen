@@ -1,0 +1,17 @@
+{
+  "name": "cloud-inspiration",
+  "version": "1.0.0",
+  "description": "Cloud detection and inspiration app",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build"
+  },
+  "dependencies": {
+    "@capacitor/android": "^5.7.8",
+    "@capacitor/core": "^5.7.8",
+    "@capacitor/ios": "^5.7.8"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.7.8"
+  }
+}

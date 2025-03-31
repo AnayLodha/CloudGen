@@ -1,0 +1,203 @@
+:root {
+    --primary-color: #4285f4;
+    --accent-color: #ff69b4;
+    --text-color: #ffffff;
+    --background-dark: #1a1a2e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.hidden {
+    display: none !important;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--background-dark), #16213e);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#video {
+    width: 100%;
+    max-height: 70vh;
+    object-fit: cover;
+    border-radius: 15px;
+    display: none;
+}
+
+#preview {
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 15px;
+    margin: 20px 0;
+    box-shadow: 0 0 20px rgba(255, 182, 255, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    display: none;
+}
+
+#preview:hover,
+#preview:focus {
+    transform: scale(1.02);
+    outline: 3px solid var(--accent-color);
+}
+
+.button-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.capture-btn {
+    background: linear-gradient(45deg, var(--accent-color), #ff1493);
+    color: var(--text-color);
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.capture-btn:hover,
+.capture-btn:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+    outline: none;
+}
+
+.capture-btn:focus-visible {
+    outline: 3px solid var(--text-color);
+    outline-offset: 2px;
+}
+
+.capture-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#affirmation {
+    font-size: 24px;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+}
+
+#affirmation.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.glow-text {
+    font-size: 2.5rem;
+    margin: 20px 0;
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(255, 182, 255, 0.7);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-affirmation {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .capture-btn,
+    #preview,
+    #affirmation {
+        transition: none;
+    }
+    
+    .animate-affirmation {
+        animation: none;
+    }
+}
+
+/* Mobile optimizations */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .glow-text {
+        font-size: 2rem;
+    }
+
+    #affirmation {
+        font-size: 20px;
+        margin: 15px;
+        padding: 15px;
+    }
+
+    .capture-btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}
+
+.install-prompt {
+    background: linear-gradient(45deg, var(--accent-color), #ff1493);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 10px 0;
+    animation: pulse 2s infinite;
+}
+
+.install-btn {
+    background: linear-gradient(45deg, #00c853, #64dd17) !important;
+    display: none;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+} 

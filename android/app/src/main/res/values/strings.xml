@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cloud Inspiration</string>
+    <string name="title_activity_main">Cloud Inspiration</string>
+    <string name="package_name">com.cloudinspiration.app</string>
+    <string name="custom_url_scheme">com.cloudinspiration.app</string>
+</resources>

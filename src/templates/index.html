@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bankai</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f8ff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .camera-container {
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .result-container {
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .processed-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: none;
+            transition: transform 0.3s ease;
+        }
+        .processed-image:hover {
+            transform: scale(1.02);
+        }
+        .affirmation {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: none;
+            animation: fadeIn 0.5s ease;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .capture-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #file-input {
+            display: none;
+        }
+        h1 {
+            color: #4a90e2;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cloud Inspiration</h1>
+        <div class="camera-container">
+            <input type="file" id="file-input" accept="image/*">
+            <button onclick="document.getElementById('file-input').click()" class="capture-btn">Capture Sky</button>
+        </div>
+        <div class="result-container">
+            <img id="processed-image" class="processed-image" alt="Cloud detection result">
+            <div id="affirmation" class="affirmation"></div>
+        </div>
+    </div>
+
+    <script>
+        // Process captured image
+        async function processImage(file) {
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const response = await fetch('/process_image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ image: e.target.result })
+                    });
+                    const data = await response.json();
+                    
+                    // Show processed image
+                    const processedImage = document.getElementById('processed-image');
+                    processedImage.src = 'data:image/jpeg;base64,' + data.processed_image;
+                    processedImage.style.display = 'block';
+                    
+                    // Store affirmation
+                    processedImage.dataset.affirmation = data.affirmation;
+                };
+                reader.readAsDataURL(file);
+            } catch (err) {
+                console.error("Error processing image:", err);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // File input handler
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    processImage(e.target.files[0]);
+                }
+            });
+
+            // Processed image click handler
+            document.getElementById('processed-image').addEventListener('click', (e) => {
+                const affirmationDiv = document.getElementById('affirmation');
+                if (affirmationDiv.style.display === 'block') {
+                    affirmationDiv.style.display = 'none';
+                } else {
+                    affirmationDiv.textContent = e.target.dataset.affirmation;
+                    affirmationDiv.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
