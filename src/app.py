@@ -12,6 +12,11 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+# Configure upload folder
+app.config['UPLOAD_FOLDER'] = '/tmp'
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 # Load model
 device = torch.device('cpu')
 model = UNet(in_channels=3, out_channels=1)
@@ -130,4 +135,5 @@ def serve_manifest():
     return send_file('static/manifest.webmanifest', mimetype='application/manifest+json')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True) 
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False) 
