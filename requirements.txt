@@ -1,7 +1,7 @@
 flask==2.0.1
 opencv-python-headless==4.5.3.56
+--find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.9.0+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
-numpy==1.21.2
+numpy>=1.23.5
 Pillow==10.2.0
 gunicorn==20.1.0
